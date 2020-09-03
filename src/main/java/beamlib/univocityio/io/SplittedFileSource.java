@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.util.NoSuchElementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.beam.sdk.coders.Coder;
+import org.apache.beam.sdk.coders.StringUtf8Coder;
 
 public class SplittedFileSource extends BoundedSource<String> {
     private static final long serialVersionUID = 1L;
@@ -37,6 +39,11 @@ public class SplittedFileSource extends BoundedSource<String> {
     @Override
     public long getEstimatedSizeBytes(PipelineOptions options) throws Exception {
         return 0L;
+    }
+
+    @Override
+    public Coder<String> getOutputCoder() {
+        return StringUtf8Coder.of();
     }
 
     @Override
