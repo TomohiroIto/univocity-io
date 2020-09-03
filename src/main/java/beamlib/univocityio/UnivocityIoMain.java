@@ -6,7 +6,7 @@ import org.apache.beam.sdk.options.PipelineOptionsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import beamlib.univocityio.io.SplittedFileIO;
+import beamlib.univocityio.io.CsvFilesIO;
 import beamlib.univocityio.options.UnivocityIoOptions;
 
 import org.apache.beam.sdk.transforms.Count;
@@ -34,7 +34,7 @@ public class UnivocityIoMain {
             .as(UnivocityIoOptions.class);
 
         Pipeline pipe = Pipeline.create(options);
-        pipe.apply("split test", SplittedFileIO.read()).apply(Count.perElement());
+        pipe.apply("split test", CsvFilesIO.read(options)).apply(Count.perElement());
         pipe.run().waitUntilFinish();
     }
 }

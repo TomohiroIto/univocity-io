@@ -18,69 +18,35 @@ import org.apache.beam.sdk.io.fs.EmptyMatchTreatment;
 
 import org.apache.beam.sdk.io.FileSystems;
 
-public class CsvFilesSource extends BoundedSource<String> {
+import org.apache.beam.sdk.coders.SerializableCoder;
+import beamlib.univocityio.values.UnivocityCsvRow;
+import beamlib.univocityio.values.UnivocityCsvSettings;
+
+public class CsvFilesSource extends BoundedSource<UnivocityCsvRow> {
     private static final long serialVersionUID = 1L;
-    private static final Logger LOG = LoggerFactory.getLogger(SplittedFileSource.class);
-
-    // private ResourceId sourceFile;
-
-	// private char delimiter = '\t';
-
-	// private String encoding = "UTF-8";
-
-	// private boolean headerRow = true;
-
-    // private boolean unsetQuote = false;
-    
-    // private long tasksPerFile = 1L;
-
-    // private String inputFiles = null;
+    private static final Logger LOG = LoggerFactory.getLogger(CsvFilesSource.class);
 
 
-    private UnivocityIoOptions options;
+    private UnivocityCsvSettings settings;
 
     private final ValueProvider<String> fileOrPatternSpec;
 
     protected CsvFilesSource(
             ValueProvider<String> fileSpec,
-            UnivocityIoOptions options) {
+            UnivocityCsvSettings settings) {
 
         this.fileOrPatternSpec = fileSpec;
-        this.options = options;
-
-        // if (options != null) {
-        //     // デリミタ
-        //     if (options.getDelimiter() != null &&
-        //         options.getDelimiter().trim().length() > 0) {
-
-        //         this.delimiter = options.getDelimiter().trim().charAt(0);
-        //     }
-
-        //     // ヘッダの有り無し
-        //     if (options.getWithHeader() != null) {
-        //         this.headerRow = options.getWithHeader();
-        //     }
-
-        //     // ファイル分割数
-        //     if (options.getTasksPerFile() != null) {
-        //         this.tasksPerFile = options.getTasksPerFile();
-        //     }
-
-        //     // File name
-        //     if (options.getInputFile() != null) {
-        //         this.inputFiles = options.getInputFile();
-        //     }
-        // }
+        this.settings = settings;
     }
 
     @Override
-    public List<? extends BoundedSource<String>> split(
+    public List<? extends BoundedSource<UnivocityCsvRow>> split(
             long desiredBundleSizeBytes,
             PipelineOptions options)
             throws Exception {
 
-        LOG.info("splitting boundedsource");
-        List<SplittedFileSource> splitResults = new ArrayList<>();
+        LOG.info("splitting boundedsource CsvFilesSource");
+        List<SplittedCsvFileSource> splitResults = new ArrayList<>();
 
         String fileOrPattern = fileOrPatternSpec.get();
         List<Metadata> expandedFiles = FileSystems
@@ -89,16 +55,10 @@ public class CsvFilesSource extends BoundedSource<String> {
                 EmptyMatchTreatment.ALLOW)
             .metadata();
         for (Metadata metadata : expandedFiles) {
+            // TODO: split files
+            splitResults.add(new SplittedCsvFileSource(settings));
         }
 
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
         return splitResults;
     }
 
@@ -108,54 +68,13 @@ public class CsvFilesSource extends BoundedSource<String> {
     }
 
     @Override
-    public Coder<String> getOutputCoder() {
-        return StringUtf8Coder.of();
+    public Coder<UnivocityCsvRow> getOutputCoder() {
+        return SerializableCoder.of(UnivocityCsvRow.class);
     }
 
     @Override
-    public BoundedReader<String> createReader(PipelineOptions options) throws IOException {
-        LOG.info("create Reader");
-        return new SplittedFileReader(this);
-    }
-
-    public static class SplittedFileReader extends BoundedReader<String> {
-        SplittedFileSource source = null;
-
-        public SplittedFileReader(SplittedFileSource source) {
-            this.source = source;
-        }
-
-        @Override
-        public BoundedSource<String> getCurrentSource() {
-            return source;
-        }
-
-        private int currentpos = 0;
-
-        @Override
-        public boolean start() throws IOException {
-            LOG.info("start");
-            currentpos = 0;
-            return true;
-        }
-
-        @Override
-        public boolean advance() throws IOException {
-            LOG.info(String.format("pos = %d", currentpos));
-            return currentpos++ < 9;
-        }
-
-        @Override
-        public String getCurrent() throws NoSuchElementException {
-            if (currentpos <= 10)
-                return "test";
-
-            throw new NoSuchElementException();
-        }
-
-        @Override
-        public void close() throws IOException {
-
-        }
+    public BoundedReader<UnivocityCsvRow> createReader(PipelineOptions options) throws IOException {
+        LOG.warn("create Reader CsvFilesSource");
+        return null;
     }
 }

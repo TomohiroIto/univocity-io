@@ -17,84 +17,31 @@ import org.apache.beam.sdk.io.fs.MatchResult.Metadata;
 import org.apache.beam.sdk.io.fs.EmptyMatchTreatment;
 
 import org.apache.beam.sdk.io.FileSystems;
+import java.util.Collections;
+import org.apache.beam.sdk.coders.SerializableCoder;
+import beamlib.univocityio.values.UnivocityCsvRow;
+import beamlib.univocityio.values.UnivocityCsvSettings;
+import beamlib.univocityio.extensions.UnivocityCsvParser;
 
-public class SplittedCsvFileSource extends BoundedSource<String> {
+public class SplittedCsvFileSource extends BoundedSource<UnivocityCsvRow> {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(SplittedCsvFileSource.class);
 
-    private ResourceId sourceFile;
+    private UnivocityCsvSettings settings;
 
-	private char delimiter = '\t';
-
-	private String encoding = "UTF-8";
-
-	private boolean headerRow = true;
-
-    private boolean unsetQuote = false;
-    
-    private long tasksPerFile = 1L;
-
-    private String inputFiles = null;
-    private final ValueProvider<String> fileOrPatternSpec;
-
-    protected SplittedCsvFileSource(
-            ValueProvider<String> fileSpec,
-            UnivocityIoOptions options) {
-
-        this.fileOrPatternSpec = fileSpec;
-
-        if (options != null) {
-            // デリミタ
-            if (options.getDelimiter() != null &&
-                options.getDelimiter().trim().length() > 0) {
-
-                this.delimiter = options.getDelimiter().trim().charAt(0);
-            }
-
-            // ヘッダの有り無し
-            if (options.getWithHeader() != null) {
-                this.headerRow = options.getWithHeader();
-            }
-
-            // ファイル分割数
-            if (options.getTasksPerFile() != null) {
-                this.tasksPerFile = options.getTasksPerFile();
-            }
-
-            // File name
-            if (options.getInputFile() != null) {
-                this.inputFiles = options.getInputFile();
-            }
-        }
+    SplittedCsvFileSource(UnivocityCsvSettings settings) {
+        this.settings = settings;
     }
 
     @Override
-    public List<? extends BoundedSource<String>> split(
+    public List<? extends BoundedSource<UnivocityCsvRow>> split(
             long desiredBundleSizeBytes,
             PipelineOptions options)
             throws Exception {
 
-        LOG.info("splitting boundedsource SplittedCsvFileSource");
-        List<SplittedCsvFileSource> splitResults = new ArrayList<>();
+        LOG.warn("splitting boundedsource SplittedCsvFileSource");
 
-        String fileOrPattern = fileOrPatternSpec.get();
-        List<Metadata> expandedFiles = FileSystems
-            .match(
-                fileOrPattern,
-                EmptyMatchTreatment.ALLOW)
-            .metadata();
-        for (Metadata metadata : expandedFiles) {
-        }
-
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        // splitResults.add(new SplittedFileSource());
-        return splitResults;
+        return Collections.singletonList(this);
     }
 
     @Override
@@ -103,25 +50,30 @@ public class SplittedCsvFileSource extends BoundedSource<String> {
     }
 
     @Override
-    public Coder<String> getOutputCoder() {
-        return StringUtf8Coder.of();
+    public Coder<UnivocityCsvRow> getOutputCoder() {
+        return SerializableCoder.of(UnivocityCsvRow.class);
     }
 
     @Override
-    public BoundedReader<String> createReader(PipelineOptions options) throws IOException {
-        LOG.info("create Reader");
-        return new SplittedCsvFileReader(this);
+    public BoundedReader<UnivocityCsvRow> createReader(PipelineOptions options) throws IOException {
+        LOG.info("create Reader SplittedCsvFileSource");
+        return new SplittedCsvFileReader(this, settings);
     }
 
-    public static class SplittedCsvFileReader extends BoundedReader<String> {
-        SplittedCsvFileSource source = null;
+    public static class SplittedCsvFileReader extends BoundedReader<UnivocityCsvRow> {
+        private SplittedCsvFileSource source = null;
+        private UnivocityCsvSettings settings;
+        private transient UnivocityCsvParser parser = null;
+        private String fileName;
 
-        public SplittedCsvFileReader(SplittedCsvFileSource source) {
+        public SplittedCsvFileReader(SplittedCsvFileSource source, UnivocityCsvSettings settings) {
             this.source = source;
+            this.settings = settings;
+            this.fileName = settings.getSourceFile().getFilename();
         }
 
         @Override
-        public BoundedSource<String> getCurrentSource() {
+        public BoundedSource<UnivocityCsvRow> getCurrentSource() {
             return source;
         }
 
@@ -130,27 +82,41 @@ public class SplittedCsvFileSource extends BoundedSource<String> {
         @Override
         public boolean start() throws IOException {
             LOG.info("start");
-            currentpos = 0;
+            close();
+
+            parser = new UnivocityCsvParser(
+                settings.getSourceFile(),
+                settings.getCompression(),
+                settings.getDivisor(),
+                settings.getRemainder(),
+                settings.getDelimiter(),
+                settings.getEncoding(),
+                settings.getHeaderRow(),
+                settings.getUnsetQuote()
+            );
+
             return true;
         }
 
         @Override
         public boolean advance() throws IOException {
-            LOG.info(String.format("pos = %d", currentpos));
-            return currentpos++ < 9;
+            return parser.advance();
         }
 
         @Override
-        public String getCurrent() throws NoSuchElementException {
-            if (currentpos <= 10)
-                return "test";
+        public UnivocityCsvRow getCurrent() throws NoSuchElementException {
+            String[] row = parser.getCurrent();
+            if (row == null) {
+                throw new NoSuchElementException();
+            }
 
-            throw new NoSuchElementException();
+            return new UnivocityCsvRow(row, fileName, parser.getCurrentRowIndex());
         }
 
         @Override
         public void close() throws IOException {
-
+            if (parser != null) parser.close();
+            parser = null;
         }
     }
 }

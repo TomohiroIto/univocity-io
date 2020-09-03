@@ -163,4 +163,8 @@ public class UnivocityCsvParser {
 
         return current;
     }
+
+    public long getCurrentRowIndex() {
+        return quotient * divisor + remainder;
+    }
 }
