@@ -7,8 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import beamlib.univocityio.io.SplittedFileIO;
+import beamlib.univocityio.options.UnivocityIoOptions;
 
-import org.apache.beam.sdk.options.PipelineOptions;
+import org.apache.beam.sdk.transforms.Count;
 
 public class UnivocityIoMain {
 
@@ -27,13 +28,13 @@ public class UnivocityIoMain {
     public static void mainDataPipeline(String[] args) throws Exception {
         LOG.info("start");
 
-        UnivocityIoOptions options = PipelineOptionsFactory.fromArgs(args).withValidation()
-                .as(UnivocityIoOptions.class);
-        Pipeline pipe = Pipeline.create(options);
-        pipe.apply("split test", SplittedFileIO.read());
-        pipe.run().waitUntilFinish();
-    }
+        UnivocityIoOptions options = PipelineOptionsFactory
+            .fromArgs(args)
+            .withValidation()
+            .as(UnivocityIoOptions.class);
 
-    public interface UnivocityIoOptions extends PipelineOptions {
+        Pipeline pipe = Pipeline.create(options);
+        pipe.apply("split test", SplittedFileIO.read()).apply(Count.perElement());
+        pipe.run().waitUntilFinish();
     }
 }
