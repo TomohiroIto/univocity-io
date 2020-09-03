@@ -17,10 +17,6 @@ public class SplittedFileSource extends BoundedSource<String> {
 
     }
 
-    /**
-     * Splits the source into bundles of approximately
-     * {@code desiredBundleSizeBytes}.
-     */
     @Override
     public List<? extends BoundedSource<String>> split(long desiredBundleSizeBytes, PipelineOptions options)
             throws Exception {
@@ -38,21 +34,11 @@ public class SplittedFileSource extends BoundedSource<String> {
         return splitResults;
     }
 
-    /**
-     * An estimate of the total size (in bytes) of the data that would be read from
-     * this source. This estimate is in terms of external storage size, before any
-     * decompression or other processing done by the reader.
-     *
-     * <p>
-     * If there is no way to estimate the size of the source implementations MAY
-     * return 0L.
-     */
     @Override
     public long getEstimatedSizeBytes(PipelineOptions options) throws Exception {
         return 0L;
     }
 
-    /** Returns a new {@link BoundedReader} that reads from this source. */
     @Override
     public BoundedReader<String> createReader(PipelineOptions options) throws IOException {
         LOG.info("create Reader");
@@ -61,6 +47,7 @@ public class SplittedFileSource extends BoundedSource<String> {
 
     public static class SplittedFileReader extends BoundedReader<String> {
         SplittedFileSource source = null;
+
         public SplittedFileReader(SplittedFileSource source) {
             this.source = source;
         }
@@ -87,7 +74,8 @@ public class SplittedFileSource extends BoundedSource<String> {
 
         @Override
         public String getCurrent() throws NoSuchElementException {
-            if (currentpos <= 10) return "test";
+            if (currentpos <= 10)
+                return "test";
 
             throw new NoSuchElementException();
         }

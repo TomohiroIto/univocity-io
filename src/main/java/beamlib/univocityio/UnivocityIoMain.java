@@ -27,15 +27,13 @@ public class UnivocityIoMain {
 	public static void mainDataPipeline(String[] args) throws Exception {
 		LOG.info("start");
 
-		UnivocityIoOptions options = PipelineOptionsFactory
-				.fromArgs(args)
-				.withValidation()
+		UnivocityIoOptions options = PipelineOptionsFactory.fromArgs(args).withValidation()
 				.as(UnivocityIoOptions.class);
-        Pipeline pipe = Pipeline.create(options);
-        pipe.apply("split test", SplittedFileIO.read());
+		Pipeline pipe = Pipeline.create(options);
+		pipe.apply("split test", SplittedFileIO.read());
 		pipe.run().waitUntilFinish();
 	}
 
-    public interface UnivocityIoOptions extends PipelineOptions {
-    }
+	public interface UnivocityIoOptions extends PipelineOptions {
+	}
 }
