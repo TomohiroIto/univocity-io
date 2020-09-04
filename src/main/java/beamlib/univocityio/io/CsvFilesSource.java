@@ -21,6 +21,7 @@ import org.apache.beam.sdk.io.FileSystems;
 import org.apache.beam.sdk.coders.SerializableCoder;
 import beamlib.univocityio.values.UnivocityCsvRow;
 import beamlib.univocityio.values.UnivocityCsvSettings;
+import beamlib.univocityio.coders.UnivocityCsvRowCoder;
 
 public class CsvFilesSource extends BoundedSource<UnivocityCsvRow> {
     private static final long serialVersionUID = 1L;
@@ -74,7 +75,7 @@ public class CsvFilesSource extends BoundedSource<UnivocityCsvRow> {
 
     @Override
     public Coder<UnivocityCsvRow> getOutputCoder() {
-        return SerializableCoder.of(UnivocityCsvRow.class);
+        return new UnivocityCsvRowCoder();
     }
 
     @Override
