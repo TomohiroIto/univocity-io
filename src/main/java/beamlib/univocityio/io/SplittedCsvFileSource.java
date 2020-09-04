@@ -77,8 +77,6 @@ public class SplittedCsvFileSource extends BoundedSource<UnivocityCsvRow> {
             return source;
         }
 
-        private int currentpos = 0;
-
         @Override
         public boolean start() throws IOException {
             LOG.info("start");

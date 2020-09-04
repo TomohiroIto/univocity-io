@@ -24,32 +24,69 @@ public class UnivocityCsvSettings implements Serializable {
         return divisor;
     }
 
+    public void setDivisor(long divisor) {
+        this.divisor = divisor;
+    }
+
     public long getRemainder() {
         return remainder;
+    }
+
+    public void setRemainder(long remainder) {
+        this.remainder = remainder;
     }
 
     public ResourceId getSourceFile() {
         return sourceFile;
     }
 
+    public void setSourceFile(ResourceId sourceFile) {
+        this.sourceFile = sourceFile;
+    }
+
     public char getDelimiter() {
         return delimiter;
+    }
+
+    public void setDelimiter(char delimiter) {
+        this.delimiter = delimiter;
     }
 
     public String getEncoding() {
         return encoding;
     }
 
+    public void setEncoding(String encoding) {
+        this.encoding = encoding;
+    }
+
     public boolean getHeaderRow() {
         return headerRow;
+    }
+
+    public void setHeaderRow(boolean headerRow) {
+        this.headerRow = headerRow;
     }
 
     public boolean getUnsetQuote() {
         return unsetQuote;
     }
 
+    public void setUnsetQuote(boolean unsetQuote) {
+        this.unsetQuote = unsetQuote;
+    }
+
     public Compression getCompression() {
         return compression;
+    }
+
+    public void setCompression(Compression compression) {
+        this.compression = compression;
+    }
+
+    public void setCompressionAuto() {
+        this.compression =
+            (this.sourceFile.getFilename().endsWith(".gz")) ? Compression.GZIP : Compression.UNCOMPRESSED;
     }
 
     @Override

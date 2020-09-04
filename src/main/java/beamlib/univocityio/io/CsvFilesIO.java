@@ -9,6 +9,7 @@ import beamlib.univocityio.values.UnivocityCsvRow;
 import beamlib.univocityio.options.UnivocityIoOptions;
 import org.apache.beam.sdk.options.ValueProvider.StaticValueProvider;
 import beamlib.univocityio.values.UnivocityCsvSettings;
+import beamlib.univocityio.util.ModelMapper;
 
 public class CsvFilesIO {
     private static final Logger LOG = LoggerFactory.getLogger(CsvFilesIO.class);
@@ -28,11 +29,11 @@ public class CsvFilesIO {
         @Override
         public PCollection<UnivocityCsvRow> expand(PBegin input) {
             LOG.info("expanding read");
-            // TODO: calc settings
+
             return input
                 .apply("Read", org.apache.beam.sdk.io.Read.from(new CsvFilesSource(
                     StaticValueProvider.of(options.getInputFile()),
-                    new UnivocityCsvSettings()
+                    ModelMapper.map(options)
                 )));
         }
     }

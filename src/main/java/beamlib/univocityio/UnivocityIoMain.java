@@ -34,7 +34,9 @@ public class UnivocityIoMain {
             .as(UnivocityIoOptions.class);
 
         Pipeline pipe = Pipeline.create(options);
-        pipe.apply("split test", CsvFilesIO.read(options)).apply(Count.perElement());
+        pipe
+            .apply("split test", CsvFilesIO.read(options))
+            .apply(Count.perElement());
         pipe.run().waitUntilFinish();
     }
 }

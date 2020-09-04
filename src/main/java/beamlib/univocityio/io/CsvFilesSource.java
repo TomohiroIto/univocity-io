@@ -26,10 +26,8 @@ public class CsvFilesSource extends BoundedSource<UnivocityCsvRow> {
     private static final long serialVersionUID = 1L;
     private static final Logger LOG = LoggerFactory.getLogger(CsvFilesSource.class);
 
-
     private UnivocityCsvSettings settings;
-
-    private final ValueProvider<String> fileOrPatternSpec;
+    private ValueProvider<String> fileOrPatternSpec;
 
     protected CsvFilesSource(
             ValueProvider<String> fileSpec,
@@ -55,8 +53,15 @@ public class CsvFilesSource extends BoundedSource<UnivocityCsvRow> {
                 EmptyMatchTreatment.ALLOW)
             .metadata();
         for (Metadata metadata : expandedFiles) {
-            // TODO: split files
-            splitResults.add(new SplittedCsvFileSource(settings));
+            // split files
+            for (long remainder = 0; remainder < settings.getDivisor(); remainder++) {
+                UnivocityCsvSettings settingsWorker = settings.clone();
+                settingsWorker.setSourceFile(metadata.resourceId());
+                settingsWorker.setRemainder(remainder);
+                settingsWorker.setCompressionAuto();
+
+                splitResults.add(new SplittedCsvFileSource(settingsWorker));
+            }
         }
 
         return splitResults;
