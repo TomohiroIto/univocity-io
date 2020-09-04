@@ -115,6 +115,12 @@ public class UnivocityCsvParser {
         parser.beginParsing(readReader);
         quotient = -1L;
 
+        // expect to be called like below
+
+        // p.start();
+        // while(p.advance()) {
+        //    p.getCurrent();
+        // }
         return true;
     }
 

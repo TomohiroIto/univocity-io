@@ -94,7 +94,9 @@ public class SplittedCsvFileSource extends BoundedSource<UnivocityCsvRow> {
                 settings.getUnsetQuote()
             );
 
-            return true;
+            // since the function order is start -> getCurrent -> advance -> getCurrent ...
+            parser.start();
+            return advance();
         }
 
         @Override
