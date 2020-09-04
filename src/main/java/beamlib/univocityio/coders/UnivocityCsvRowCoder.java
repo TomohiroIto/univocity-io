@@ -14,7 +14,8 @@ import java.io.OutputStream;
 public class UnivocityCsvRowCoder extends AtomicCoder<UnivocityCsvRow> {
     @Override
     public UnivocityCsvRow decode(InputStream inStream) throws CoderException, IOException {
-        try (ObjectInputStream ois = new ObjectInputStream(inStream)) {
+        try {
+            ObjectInputStream ois = new ObjectInputStream(inStream);
             UnivocityCsvRow row = (UnivocityCsvRow) ois.readObject();
             return row;
         } catch (ClassNotFoundException ex) {
